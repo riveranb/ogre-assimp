@@ -18,7 +18,7 @@ Basic useful feature list:
 
 # Sample Usage
 
-You need to include 
+You need to include (CMAKE Does not work use the following)
 ```
 #include <importer.h> //Don't forget to add the .cpp files into you project.
 ```
