@@ -12,13 +12,13 @@ http://forums.ogre3d.org/viewtopic.php?f=25&t=93647&p=539322#p539322
 - Currently only mesh/submesh, but have bugs on (index) buffers...
 
 # Usage
-'''
+```
 #include "AssimpImporter"
 
     Demo::assimp::Importer assimpimport;
     Ogre::MeshPtr pmesh;
     bool ret = assimpimport.createMeshV2(pmesh, [meshname], [pathname], quality);
-'''
+```
 
 ### Liscence:
 This code use OgreAssimp Converter liscence.
