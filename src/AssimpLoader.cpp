@@ -243,49 +243,46 @@ bool AssimpLoader::genSubMeshV2(const Ogre::String& name, int index, const aiNod
 	Ogre::VaoManager *vaoManager = Ogre::Root::getSingleton().getRenderSystem()->getVaoManager();
 	// create vertex buffer
 	unsigned short numreal = 3;
-	unsigned short posBytes = 0, normBytes = 0, uvBytes = 0, colBytes = 0;
 	posBytes = sizeof(Ogre::Real) * 3;
 	Ogre::VertexElement2Vec velements;
 	velements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT3, Ogre::VES_POSITION));
 	if (mesh->HasNormals())
 	{
-		normBytes = sizeof(Ogre::Real) * 3;
+		normBytes = sizeof(Ogre::Real) * 3
 		numreal += 3;
 		velements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT3, Ogre::VES_NORMAL));
 	}
 	if (mesh->HasTextureCoords(0)) // currently consider first uv only
 	{
-		uvBytes = sizeof(Ogre::Real) * 2;
 		numreal += 2;
 		velements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT2, Ogre::VES_TEXTURE_COORDINATES));
 	}
 	if (mesh->HasVertexColors(0)) // assume first color set as diffuse color
 	{
 		// TODO: can it be uint32 (RGBA)?
-		colBytes = sizeof(Ogre::Real) * 3;
 		numreal += 3;
 		velements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT3, Ogre::VES_DIFFUSE));
 	}
 
 	Ogre::Real *vertexdata = reinterpret_cast<Ogre::Real *> (OGRE_MALLOC_SIMD(
 								sizeof(Ogre::Real) * numreal * mesh->mNumVertices, Ogre::MEMCATEGORY_GEOMETRY));
+	Ogre::FreeOnDestructor vdataPtr(vertexdata);
 	// fill vertexdata manually
 	// prime pointers to vertex related data
 	aiVector3D *vec = mesh->mVertices;
 	aiVector3D *norm = mesh->mNormals;
 	aiVector3D *uv = mesh->mTextureCoords[0];
 	aiColor4D *col = mesh->mColors[0];
-	Ogre::Aabb subAABB(Ogre::Vector3(vec[0].x, vec[0].y, vec[0].z), Ogre::Vector3::UNIT_SCALE);
+	Ogre::Aabb subAABB(Ogre::Vector3(vec[0].x, vec[0].y, vec[0].z), Ogre::Vector3::ZERO);
 #if defined _DEBUG && 0
 	Ogre::LogManager::getSingleton().logMessage("  = Parsed vertuces (positions):");
 #endif
 	for (unsigned int i = 0, offset = 0; i < mesh->mNumVertices; ++i)
 	{
 		// position
-		memcpy(vertexdata + offset, &vec[i].x, posBytes);
-		//vertexdata[offset + 0] = vec[i].x;
-		//vertexdata[offset + 1] = vec[i].y;
-		//vertexdata[offset + 2] = vec[i].z;
+		vertexdata[offset + 0] = vec[i].x;
+		vertexdata[offset + 1] = vec[i].y;
+		vertexdata[offset + 2] = vec[i].z;
 		offset += 3;
 		subAABB.merge(Ogre::Vector3(vec[i].x, vec[i].y, vec[i].z));
 #if defined _DEBUG && 0
@@ -298,27 +295,24 @@ bool AssimpLoader::genSubMeshV2(const Ogre::String& name, int index, const aiNod
 		// normal
 		if (mesh->HasNormals())
 		{
-			memcpy(vertexdata + offset, &norm[i].x, normBytes);
-			//vertexdata[offset + 0] = norm[i].x;
-			//vertexdata[offset + 1] = norm[i].y;
-			//vertexdata[offset + 2] = norm[i].z;
+			vertexdata[offset + 0] = norm[i].x;
+			vertexdata[offset + 1] = norm[i].y;
+			vertexdata[offset + 2] = norm[i].z;
 			offset += 3;
 		}
 		// uv
 		if (mesh->HasTextureCoords(0))
 		{
-			memcpy(vertexdata + offset, &uv[i].x, uvBytes);
-			//vertexdata[offset + 0] = uv[i].x;
-			//vertexdata[offset + 1] = uv[i].y;
+			vertexdata[offset + 0] = uv[i].x;
+			vertexdata[offset + 1] = uv[i].y;
 			offset += 2;
 		}
 		// color
 		if (mesh->HasVertexColors(0))
 		{
-			memcpy(vertexdata + offset, &col[i].r, colBytes);
-			//vertex[offset + 0] = col[i].r;
-			//vertex[offset + 1] = col[i].g;
-			//vertex[offset + 2] = col[i].b;
+			vertexdata[offset + 0] = col[i].r;
+			vertexdata[offset + 1] = col[i].g;
+			vertexdata[offset + 2] = col[i].b;
 			offset += 3;
 		}
 	}
@@ -348,6 +342,7 @@ bool AssimpLoader::genSubMeshV2(const Ogre::String& name, int index, const aiNod
 	// currently consider 16-bit indices array only
 	Ogre::uint16 * indexdata = reinterpret_cast<Ogre::uint16 *>(OGRE_MALLOC_SIMD(
 									sizeof(Ogre::uint16) * 3 * mesh->mNumFaces, Ogre::MEMCATEGORY_GEOMETRY));
+	Ogre::FreeOnDestructor iddataPtr(indexdata);
 	// fill indexdata manually
 #if defined _DEBUG && 0
 	Ogre::LogManager::getSingleton().logMessage("  = Parsed indices:");
@@ -371,7 +366,7 @@ bool AssimpLoader::genSubMeshV2(const Ogre::String& name, int index, const aiNod
 	try
 	{
 		indexBuffer = vaoManager->createIndexBuffer(Ogre::IndexBufferPacked::IT_16BIT,
-			sizeof(Ogre::uint16) * 3 * mesh->mNumFaces,
+			3 * mesh->mNumFaces, // number of indices
 			Ogre::BT_IMMUTABLE,
 			indexdata, false);
 	}
