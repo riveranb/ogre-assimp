@@ -128,12 +128,18 @@ namespace assimp
 		virtual ~AssimpLoader();
 
 		bool convertV2(const AssetOptions &options, Ogre::MeshPtr &pmesh, int quality);
+		void clearAssimp();
 
 		const Ogre::String& getBasename() { return mBasename; }
 
 	private:
 		static int _msBoneCount;
 
+		// template method for 16-bit and 32-bit index buffer cases
+		template <class id_t>
+		Ogre::IndexBufferPacked* inflateIndexBufferPacked(const aiMesh* inmesh, Ogre::VaoManager* vaomgr,
+			Ogre::IndexBufferPacked::IndexType typenum, id_t* buffer);
+			
 		const aiScene* readingAsset(const AssetOptions & opts, int quality);
 
 		bool genSubMeshV2(const Ogre::String& name, int index, const aiNode* node, const aiMesh* mesh, const aiMaterial* mat,

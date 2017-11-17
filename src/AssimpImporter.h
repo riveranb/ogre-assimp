@@ -43,8 +43,9 @@ namespace Demo
 {
 namespace assimp
 {	
-	const int HIGH_QUALITY = 1;
-	const int LOW_QUALITY = 0;
+	// more literally
+	const int HIGH_PERFORMANCE_QUALITY = 1;
+	const int LOW_PERFORMANCE_QUALITY = 0;
 
 	class Importer
 	{
